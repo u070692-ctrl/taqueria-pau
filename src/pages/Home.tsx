@@ -135,11 +135,11 @@ export default function Home() {
 
   if (userData?.role === 'customer') {
     return (
-      <div className="space-y-8">
-        <section className="bg-orange-500 rounded-[3rem] p-8 sm:p-12 text-white relative overflow-hidden shadow-2xl shadow-orange-100">
+      <div className="space-y-8 pb-24 lg:pb-8">
+        <section className="bg-orange-500 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-12 text-white relative overflow-hidden shadow-2xl shadow-orange-100">
            <div className="relative z-10">
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tighter mb-4">¡Ordena ahora los mejores tacos en Pau! 🌮</h1>
-              <p className="text-orange-100 font-bold uppercase tracking-[0.2em] text-sm">Sabor 100% Mexicano Directo a tu mesa</p>
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tighter mb-4">¡Ordena ahora los mejores tacos en Pau! 🌮</h1>
+              <p className="text-orange-100 font-bold uppercase tracking-[0.2em] text-[10px] sm:text-sm">Sabor 100% Mexicano Directo a tu mesa</p>
            </div>
            <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-10 rotate-12 hidden lg:block">
               <Utensils className="w-64 h-64" />
@@ -148,20 +148,24 @@ export default function Home() {
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-2xl font-extrabold text-slate-900 border-b border-slate-100 pb-2">Nuestro Menú</h3>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h3 className="text-2xl font-extrabold text-slate-900">Nuestro Menú</h3>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{productos.length} Platos disponibles</span>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {productos.map(p => (
                 <div key={p.id} className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-lg transition-all">
-                  <div className="flex-1">
-                    <h4 className="font-bold text-slate-900 uppercase tracking-tight">{p.nombre}</h4>
-                    <p className="text-xs text-slate-400 font-medium italic">{p.descripcion || 'Sin descripción'}</p>
+                  <div className="flex-1 min-w-0 mr-4">
+                    <h4 className="font-bold text-slate-900 uppercase tracking-tight truncate">{p.nombre}</h4>
+                    <p className="text-[11px] text-slate-400 font-medium italic line-clamp-1">{p.descripcion || 'Especialidad de la casa'}</p>
                     <p className="text-orange-500 font-black mt-1">{formatCurrency(p.precio)}</p>
                   </div>
                   <button 
                     onClick={() => addToCart(p)}
-                    className="w-10 h-10 bg-slate-100 group-hover:bg-orange-500 group-hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90"
+                    className="w-11 h-11 bg-slate-50 group-hover:bg-orange-500 group-hover:text-white rounded-2xl flex items-center justify-center transition-all active:scale-90 border border-slate-100 group-hover:border-transparent shrink-0"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-6 h-6" />
                   </button>
                 </div>
               ))}
@@ -169,7 +173,8 @@ export default function Home() {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50 sticky top-24">
+             {/* Desktop Cart */}
+            <div className="hidden lg:block bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50 sticky top-24">
               <div className="flex items-center gap-2 mb-6">
                 <ShoppingBag className="w-6 h-6 text-orange-500" />
                 <h3 className="text-xl font-extrabold text-slate-900">Tu Pedido</h3>
@@ -182,15 +187,15 @@ export default function Home() {
                   </div>
                 ) : (
                   Object.values(cart).map(item => (
-                    <div key={item.product.id} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-900 text-sm leading-tight">{item.product.nombre}</p>
+                    <div key={item.product.id} className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 text-sm leading-tight truncate">{item.product.nombre}</p>
                         <p className="text-[10px] text-slate-400 font-bold">{formatCurrency(item.product.precio)} x {item.quantity}</p>
                       </div>
-                      <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg">
-                        <button onClick={() => removeFromCart(item.product.id!)} className="p-1 hover:bg-slate-200 rounded text-slate-600"><Minus className="w-3 h-3" /></button>
+                      <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl shrink-0">
+                        <button onClick={() => removeFromCart(item.product.id!)} className="p-1 hover:bg-slate-200 rounded text-slate-600 transition-colors"><Minus className="w-3 h-3" /></button>
                         <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
-                        <button onClick={() => addToCart(item.product)} className="p-1 hover:bg-slate-200 rounded text-slate-600"><Plus className="w-3 h-3" /></button>
+                        <button onClick={() => addToCart(item.product)} className="p-1 hover:bg-slate-200 rounded text-slate-600 transition-colors"><Plus className="w-3 h-3" /></button>
                       </div>
                     </div>
                   ))
@@ -222,6 +227,62 @@ export default function Home() {
                   ¡Pedido enviado con éxito! 🌮
                 </motion.div>
               )}
+            </div>
+            
+            {/* Mobile Cart Sheet Placeholder/Bottom Drawer (Handled by showing a summary button) */}
+            {Object.values(cart).length > 0 && (
+               <motion.div 
+                initial={{ y: 100 }}
+                animate={{ y: 0 }}
+                className="lg:hidden fixed bottom-20 left-4 right-4 z-50 pointer-events-none"
+               >
+                 <button 
+                  onClick={() => {
+                     // Scroll to top of order section or open a modal (simulated by scrolling to desktop cart if it were mobile visible)
+                     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                  }}
+                  className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between pointer-events-auto active:scale-95 transition-all"
+                 >
+                    <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-[10px] font-black">
+                          {Object.values(cart).reduce((a, b) => a + b.quantity, 0)}
+                       </div>
+                       <span className="text-xs font-black uppercase tracking-widest">Ver mi pedido</span>
+                    </div>
+                    <span className="font-black text-orange-400">{formatCurrency(totalCart)}</span>
+                 </button>
+               </motion.div>
+            )}
+
+            {/* Mobile specific cart view at the end of products */}
+            <div className="lg:hidden bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100 mt-8">
+               <h3 className="text-xl font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+                 <ShoppingBag className="w-5 h-5 text-orange-500" />
+                 Finalizar Compra
+               </h3>
+               {Object.values(cart).length === 0 ? (
+                  <p className="text-center py-6 text-slate-400 text-xs font-bold uppercase">Agrega productos arriba</p>
+               ) : (
+                  <div className="space-y-4">
+                     {Object.values(cart).map(item => (
+                        <div key={item.product.id} className="flex items-center justify-between">
+                           <span className="text-sm font-bold text-slate-700">{item.product.nombre} x {item.quantity}</span>
+                           <span className="text-sm font-black text-slate-900">{formatCurrency(item.product.precio * item.quantity)}</span>
+                        </div>
+                     ))}
+                     <div className="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                        <span className="text-sm font-black text-slate-900 uppercase">Total</span>
+                        <span className="text-xl font-black text-orange-600">{formatCurrency(totalCart)}</span>
+                     </div>
+                     <button 
+                        onClick={placeOrder}
+                        disabled={orderStatus === 'sending'}
+                        className="w-full bg-slate-900 text-white font-black p-4 rounded-2xl active:scale-95 transition-all disabled:opacity-50"
+                      >
+                         {orderStatus === 'sending' ? 'Procesando...' : 'Pedir Ahora'}
+                      </button>
+                  </div>
+               )}
             </div>
           </div>
         </section>

@@ -13,8 +13,11 @@ interface AuthContextType {
   user: User | null;
   userData: Usuario | null;
   loading: boolean;
+  error: string | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  setInitialRole: (role: UserRole) => Promise<void>;
+  updateUserRole: (role: UserRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,8 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const DEVELOPER_EMAIL = 'u070692@cetis7.edu.mx';
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -40,16 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (userDoc.exists()) {
             setUserData({ id: userDoc.id, ...userDoc.data() } as Usuario);
           } else {
-            // First time user: Admin if matches dev email, otherwise customer
-            const role: UserRole = currentUser.email === DEVELOPER_EMAIL ? 'admin' : 'customer';
-            const newUserData: Usuario = {
-              nombre: currentUser.displayName || 'Usuario',
-              email: currentUser.email || '',
-              role: role,
-              createdAt: serverTimestamp(),
-            };
-            await setDoc(userDocRef, newUserData);
-            setUserData(newUserData);
+            // First time user: Don't set role automatically
+            setUserData(null);
           }
         } catch (err) {
           console.error("Error fetching user data:", err);
@@ -81,8 +74,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => signOut(auth);
 
+  const updateUserRole = async (role: UserRole) => {
+    if (!user) return;
+    try {
+      const userDocRef = doc(db, 'usuarios', user.uid);
+      await setDoc(userDocRef, {
+        nombre: user.displayName || 'Usuario',
+        email: user.email || '',
+        role: role,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      
+      setUserData(prev => prev ? { ...prev, role } : null);
+    } catch (err) {
+      console.error("Error updating role:", err);
+    }
+  };
+
+  const setInitialRole = async (role: UserRole) => {
+    if (!user) return;
+    try {
+      const userDocRef = doc(db, 'usuarios', user.uid);
+      const newUserData: Usuario = {
+        nombre: user.displayName || 'Usuario',
+        email: user.email || '',
+        role: role,
+        createdAt: serverTimestamp(),
+      };
+      await setDoc(userDocRef, newUserData);
+      setUserData(newUserData);
+    } catch (err) {
+      console.error("Error setting role:", err);
+      setError("No se pudo asignar el rol.");
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, userData, loading, login, logout, error }}>
+    <AuthContext.Provider value={{ user, userData, loading, login, logout, error, setInitialRole, updateUserRole }}>
       {children}
     </AuthContext.Provider>
   );

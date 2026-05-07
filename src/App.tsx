@@ -17,17 +17,28 @@ import { motion, AnimatePresence } from 'motion/react';
 function ProtectedRoute({ children, roles }: { children: React.ReactNode, roles?: string[] }) {
   const { user, userData, loading } = useAuth();
   
-  if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-screen bg-slate-50 gap-4">
+      <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em]">Validando Credenciales</p>
+    </div>
+  );
+
   if (!user) return <Navigate to="/login" />;
+  
+  // If user is logged in but has no profile data (role), send back to login for role selection
+  if (user && !userData) return <Navigate to="/login" />;
+  
   if (roles && userData && !roles.includes(userData.role)) return <Navigate to="/" />;
   
   return <>{children}</>;
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const { userData, logout } = useAuth();
+  const { userData, logout, updateUserRole } = useAuth();
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const [showRoleSwitcher, setShowRoleSwitcher] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -43,14 +54,14 @@ function Layout({ children }: { children: React.ReactNode }) {
               <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-orange-200">
                 P
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className="font-bold text-slate-900 leading-none">Taquería Pau</h1>
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Sabor Auténtico</span>
               </div>
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+          <nav className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
             <Link to="/" className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${location.pathname === '/' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>Inicio</Link>
             {(userData?.role === 'admin' || userData?.role === 'worker') && (
               <>
@@ -64,13 +75,51 @@ function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-3">
-             <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium text-slate-900 leading-none">{userData?.nombre}</p>
-                <p className="text-[10px] text-orange-500 font-bold uppercase tracking-tighter">{userData?.role}</p>
+             <div 
+              className="relative cursor-pointer group"
+              onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
+             >
+                <div className="hidden sm:block text-right">
+                    <p className="text-sm font-medium text-slate-900 leading-none">{userData?.nombre}</p>
+                    <p className="text-[10px] text-orange-500 font-bold uppercase tracking-tighter flex items-center justify-end gap-1">
+                      {userData?.role} <ChevronRight className="w-2 h-2 rotate-90" />
+                    </p>
+                </div>
+                <div className="sm:hidden w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600">
+                  {userData?.role.charAt(0).toUpperCase()}
+                </div>
+
+                <AnimatePresence>
+                  {showRoleSwitcher && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-[60]"
+                    >
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest p-2 border-b border-slate-50 mb-1">Cambiar de Acceso</p>
+                      {(['admin', 'worker', 'customer'] as UserRole[]).map((r) => (
+                        <button
+                          key={r}
+                          disabled={userData?.role === r}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateUserRole(r);
+                            setShowRoleSwitcher(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 rounded-xl text-sm font-bold capitalize transition-colors ${userData?.role === r ? 'bg-slate-50 text-slate-300' : 'hover:bg-orange-50 text-slate-600 hover:text-orange-600'}`}
+                        >
+                          {r === 'customer' ? 'Cliente' : r === 'worker' ? 'Trabajador' : 'Administrador'}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
              </div>
+             
              <button 
               onClick={() => logout()}
-              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+              className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
               title="Cerrar Sesión"
              >
                 <LogOut className="w-5 h-5" />
