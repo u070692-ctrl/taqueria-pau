@@ -1,0 +1,6 @@
+{
+  "name": "Taqueria Pau",
+  "description": "Sistema de gestión integral para Taquería Pau con control de pedidos, clientes y roles de acceso para administrador, trabajadores y clientes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

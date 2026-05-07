@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "cliente": {
+      "title": "Cliente",
+      "description": "Información de los clientes de la taquería.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string", "description": "Nombre completo del cliente" },
+        "telefono": { "type": "string", "description": "Número de contacto" },
+        "direccion": { "type": "string", "description": "Dirección de entrega" },
+        "email": { "type": "string", "format": "email", "description": "Correo electrónico" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Fecha de registro" }
+      },
+      "required": ["nombre", "telefono"]
+    },
+    "producto": {
+      "title": "Producto",
+      "description": "Productos disponibles en el menú (tacos, bebidas, etc.)",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string", "description": "Nombre del producto" },
+        "precio": { "type": "number", "description": "Precio unitario" },
+        "categoria": { "type": "string", "description": "Categoría (Tacos, Bebidas, Complementos)" },
+        "descripcion": { "type": "string", "description": "Descripción breve" },
+        "imagenUrl": { "type": "string", "description": "URL de la imagen del producto" }
+      },
+      "required": ["nombre", "precio", "categoria"]
+    },
+    "pedido": {
+      "title": "Pedido",
+      "description": "Información de un pedido realizado.",
+      "type": "object",
+      "properties": {
+        "clienteId": { "type": "string", "description": "ID del cliente" },
+        "clienteNombre": { "type": "string", "description": "Nombre del cliente para acceso rápido" },
+        "items": { "type": "array", "description": "Lista de productos y cantidades" },
+        "total": { "type": "number", "description": "Monto total del pedido" },
+        "status": { "type": "string", "enum": ["pendiente", "en_proceso", "entregado", "cancelado"], "description": "Estado del pedido" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Fecha del pedido" },
+        "workerId": { "type": "string", "description": "ID del trabajador que procesa el pedido" }
+      },
+      "required": ["items", "total", "status", "createdAt"]
+    },
+    "usuario": {
+      "title": "Usuario",
+      "description": "Perfiles de usuario con roles de acceso.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "worker", "customer"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/clientes/{clienteId}": { "schema": "cliente", "description": "Colección de clientes" },
+    "/productos/{productoId}": { "schema": "producto", "description": "Catálogo de productos" },
+    "/pedidos/{pedidoId}": { "schema": "pedido", "description": "Historial de pedidos" },
+    "/usuarios/{usuarioId}": { "schema": "usuario", "description": "Configuración de roles de usuario" }
+  }
+}
